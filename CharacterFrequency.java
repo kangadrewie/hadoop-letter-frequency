@@ -1,14 +1,11 @@
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.SequenceFileInputFormat;
-import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.io.FloatWritable;
-import org.apache.hadoop.io.LongWritable;
 
 public class CharacterFrequency {
     public static void main(String[] args) throws Exception {
@@ -45,13 +42,13 @@ public class CharacterFrequency {
     	long ENG_TOTAL = GetAllCharacters.getCounters().findCounter("CharacterMapper$Character", "ENG").getValue();
     	long FR_TOTAL = GetAllCharacters.getCounters().findCounter("CharacterMapper$Character", "FR").getValue();
     	long NL_TOTAL = GetAllCharacters.getCounters().findCounter("CharacterMapper$Character", "NL").getValue();
-
-    	System.out.println(ENG_TOTAL);
-    	System.out.println(FR_TOTAL);
-    	System.out.println(NL_TOTAL);
-    	System.out.println("THIS IS RESULT");
     	
+    	conf.setLong("ENG_TOTAL", ENG_TOTAL);
+    	conf.setLong("FR_TOTAL", FR_TOTAL);
+    	conf.setLong("NL_TOTAL", NL_TOTAL);
+
     	Job CalculateSum = Job.getInstance(conf, "CalculateSum");
+    	
     	CalculateSum.setJarByClass(CharacterFrequency.class);
     	CalculateSum.setJobName("CharacterFrequency");
     	CalculateSum.setNumReduceTasks(3);

@@ -5,7 +5,8 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 
-public class CharacterMapper extends Mapper<LongWritable, Text, Text, FloatWritable> {	
+public class CharacterMapper extends Mapper<LongWritable, Text, Text, FloatWritable> {
+	enum Character{ENG, FR, NL}
     public void map(LongWritable key, Text value, Context context)
         throws IOException, InterruptedException {
 
@@ -20,6 +21,13 @@ public class CharacterMapper extends Mapper<LongWritable, Text, Text, FloatWrita
     	for (String character : characters) {
     		if (character.length() > 0) {
         		context.write(new Text(prefix+character.toLowerCase()), new FloatWritable(1.0f));
+        		if (prefix.contains("ENG")) {
+        			context.getCounter(Character.ENG).increment(1);        			
+        		} else if (prefix.contains("FR")) {
+            	    context.getCounter(Character.FR).increment(1); 
+        		} else if (prefix.contains("NL")) {
+            	    context.getCounter(Character.NL).increment(1); 
+        		}
     		}
     	}
     }

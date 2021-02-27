@@ -2,6 +2,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.SequenceFileInputFormat;
+import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -40,6 +41,15 @@ public class CharacterFrequency {
     	FileOutputFormat.setOutputPath(GetAllCharacters, new Path(args[1]));   
     	
     	GetAllCharacters.waitForCompletion(true);
+    	
+    	long ENG_TOTAL = GetAllCharacters.getCounters().findCounter("CharacterMapper$Character", "ENG").getValue();
+    	long FR_TOTAL = GetAllCharacters.getCounters().findCounter("CharacterMapper$Character", "FR").getValue();
+    	long NL_TOTAL = GetAllCharacters.getCounters().findCounter("CharacterMapper$Character", "NL").getValue();
+
+    	System.out.println(ENG_TOTAL);
+    	System.out.println(FR_TOTAL);
+    	System.out.println(NL_TOTAL);
+    	System.out.println("THIS IS RESULT");
     	
     	Job CalculateSum = Job.getInstance(conf, "CalculateSum");
     	CalculateSum.setJarByClass(CharacterFrequency.class);

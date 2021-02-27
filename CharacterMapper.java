@@ -20,7 +20,6 @@ public class CharacterMapper extends Mapper<LongWritable, Text, Text, FloatWrita
     	for (String character : characters) {
     		if (character.length() > 0) {
         		context.write(new Text(prefix+character.toLowerCase()), new FloatWritable(1.0f));
-//        		context.write(new Text("ENG_TOTAL"), new FloatWritable(1.0f));
     		}
     	}
     }

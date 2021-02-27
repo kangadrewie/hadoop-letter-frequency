@@ -41,22 +41,23 @@ public class CharacterFrequency {
     	
     	GetAllCharacters.waitForCompletion(true);
     	
-//    	Job CalculateSum = Job.getInstance(conf, "CalculateSum");
-//    	CalculateSum.setJarByClass(CharacterFrequency.class);
-//    	CalculateSum.setJobName("CharacterFrequency");
-//    	CalculateSum.setNumReduceTasks(1);
-//    	CalculateSum.setMapperClass(FrequencyMapper.class);
-//    	CalculateSum.setReducerClass(FrequencyReducer.class);
-//    	CalculateSum.setMapOutputKeyClass(Text.class);
-//    	CalculateSum.setMapOutputValueClass(FloatWritable.class);
-//
-//    	CalculateSum.setOutputKeyClass(Text.class);
-//    	CalculateSum.setOutputValueClass(FloatWritable.class);
-//
-//    	FileInputFormat.addInputPath(CalculateSum, new Path("output/part-r-00000"));
-//    	FileOutputFormat.setOutputPath(CalculateSum, new Path("/user/root/output/secondMap/"));
-//
-//        CalculateSum.waitForCompletion(true);
+    	Job CalculateSum = Job.getInstance(conf, "CalculateSum");
+    	CalculateSum.setJarByClass(CharacterFrequency.class);
+    	CalculateSum.setJobName("CharacterFrequency");
+    	CalculateSum.setNumReduceTasks(3);
+    	CalculateSum.setMapperClass(FrequencyMapper.class);
+    	CalculateSum.setReducerClass(FrequencyReducer.class);
+    	CalculateSum.setPartitionerClass(LanguagePartitioner.class);
+    	CalculateSum.setMapOutputKeyClass(Text.class);
+    	CalculateSum.setMapOutputValueClass(FloatWritable.class);
+
+    	CalculateSum.setOutputKeyClass(Text.class);
+    	CalculateSum.setOutputValueClass(FloatWritable.class);
+
+    	FileInputFormat.addInputPath(CalculateSum, new Path("output/"));
+    	FileOutputFormat.setOutputPath(CalculateSum, new Path("/user/root/output/secondMap/"));
+
+        CalculateSum.waitForCompletion(true);
     }
     
     public static class LanguagePartitioner extends Partitioner<Text, FloatWritable> 

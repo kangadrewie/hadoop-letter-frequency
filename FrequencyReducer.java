@@ -7,11 +7,14 @@ import org.apache.hadoop.mapreduce.Reducer;
 public class FrequencyReducer extends Reducer<Text, FloatWritable, Text, FloatWritable> {	
     public void reduce(Text key, Iterable<FloatWritable> values, Context context)
     throws IOException, InterruptedException {
-    	float characterCount = 0f;
+    	float averageFrequency = 0f;
+    	
+    	String k = key.toString().replaceAll("[0-9.\\s+]", "");
     	
     	for (FloatWritable value : values) {
-    		characterCount += value.get();
+    		averageFrequency += value.get();
     	}
-    	context.write(new Text(key), new FloatWritable(characterCount));
+    	
+    	context.write(new Text(k), new FloatWritable(averageFrequency));
     }
 }

@@ -9,11 +9,12 @@ public class CharacterSumReducer extends Reducer<Text, FloatWritable, Text, Floa
     throws IOException, InterruptedException {
 
     	float characterCount = 0f;
-    	
+    	// Iterate through KV pairs and calculate total count for each character
     	for (FloatWritable value : values) {
     		characterCount += value.get();
     	}
     	
+    	// Write total to key
     	context.write(new Text(key), new FloatWritable(characterCount));
     }
 }

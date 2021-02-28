@@ -2,7 +2,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Partitioner;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.io.FloatWritable;
@@ -12,6 +11,7 @@ public class CharacterFrequency {
     	
     	System.err.println(args);
 
+    	// Check input arguments are provided
         if (args.length != 2) {
         	System.err.println("Usage: CharacterFrequency <input path> <output path>");
         	System.exit(-1); 
@@ -21,69 +21,58 @@ public class CharacterFrequency {
 
     	System.out.println("In Driver now!");
     
-    	Job GetAllCharacters = Job.getInstance(conf, "GetAllCharacters");
-    	GetAllCharacters.setJarByClass(CharacterFrequency.class);
-    	GetAllCharacters.setJobName("CharacterFrequency");
-    	GetAllCharacters.setNumReduceTasks(3);
-    	GetAllCharacters.setMapperClass(CharacterMapper.class);
-    	GetAllCharacters.setCombinerClass(CharacterSumReducer.class);
-    	GetAllCharacters.setReducerClass(CharacterSumReducer.class);
-    	GetAllCharacters.setMapOutputKeyClass(Text.class);
-    	GetAllCharacters.setMapOutputValueClass(FloatWritable.class);
-    	GetAllCharacters.setPartitionerClass(LanguagePartitioner.class);
-    	GetAllCharacters.setOutputKeyClass(Text.class);
-    	GetAllCharacters.setOutputValueClass(FloatWritable.class);
+    	// Count occurrences of A-Z
+    	Job CalculateCharacterSum = Job.getInstance(conf, "CalculateCharacterSum");
+    	CalculateCharacterSum.setJarByClass(CharacterFrequency.class);
+    	CalculateCharacterSum.setJobName("CharacterFrequency");
+    	CalculateCharacterSum.setNumReduceTasks(3);
+    	CalculateCharacterSum.setMapperClass(CharacterMapper.class);
+    	CalculateCharacterSum.setCombinerClass(CharacterSumReducer.class);
+    	CalculateCharacterSum.setReducerClass(CharacterSumReducer.class);
+    	CalculateCharacterSum.setMapOutputKeyClass(Text.class);
+    	CalculateCharacterSum.setMapOutputValueClass(FloatWritable.class);
+    	CalculateCharacterSum.setPartitionerClass(LanguagePartitioner.class);
+    	CalculateCharacterSum.setOutputKeyClass(Text.class);
+    	CalculateCharacterSum.setOutputValueClass(FloatWritable.class);
     	
-    	FileInputFormat.addInputPath(GetAllCharacters, new Path(args[0]));
-    	FileOutputFormat.setOutputPath(GetAllCharacters, new Path(args[1]));   
+    	FileInputFormat.addInputPath(CalculateCharacterSum, new Path(args[0]));
+    	FileOutputFormat.setOutputPath(CalculateCharacterSum, new Path(args[1]));   
     	
-    	GetAllCharacters.waitForCompletion(true);
+    	CalculateCharacterSum.waitForCompletion(true);
     	
-    	long ENG_TOTAL = GetAllCharacters.getCounters().findCounter("CharacterMapper$Character", "ENG").getValue();
-    	long FR_TOTAL = GetAllCharacters.getCounters().findCounter("CharacterMapper$Character", "FR").getValue();
-    	long NL_TOTAL = GetAllCharacters.getCounters().findCounter("CharacterMapper$Character", "NL").getValue();
+    	// Call total counters for all three languages
+    	long ENG_TOTAL = CalculateCharacterSum.getCounters().findCounter("CharacterMapper$Character", "ENG").getValue();
+    	long FR_TOTAL = CalculateCharacterSum.getCounters().findCounter("CharacterMapper$Character", "FR").getValue();
+    	long NL_TOTAL = CalculateCharacterSum.getCounters().findCounter("CharacterMapper$Character", "NL").getValue();
     	
+    	// Set totals in configuration
     	conf.setLong("ENG_TOTAL", ENG_TOTAL);
     	conf.setLong("FR_TOTAL", FR_TOTAL);
     	conf.setLong("NL_TOTAL", NL_TOTAL);
-
-    	Job CalculateSum = Job.getInstance(conf, "CalculateSum");
     	
-    	CalculateSum.setJarByClass(CharacterFrequency.class);
-    	CalculateSum.setJobName("CharacterFrequency");
-    	CalculateSum.setNumReduceTasks(3);
-    	CalculateSum.setMapperClass(FrequencyMapper.class);
-    	CalculateSum.setReducerClass(FrequencyReducer.class);
-    	CalculateSum.setPartitionerClass(LanguagePartitioner.class);
-    	CalculateSum.setMapOutputKeyClass(Text.class);
-    	CalculateSum.setMapOutputValueClass(FloatWritable.class);
+    	System.out.println(ENG_TOTAL);
+    	System.out.println(FR_TOTAL);
+    	System.out.println(NL_TOTAL);
+    	System.out.println("THIS IS RESULTS");
 
-    	CalculateSum.setOutputKeyClass(Text.class);
-    	CalculateSum.setOutputValueClass(FloatWritable.class);
+    	// Start MP process to calculate frequency of characters
+    	Job CalculateCharacterFreq = Job.getInstance(conf, "CalculateCharacterFreq");
+    	
+    	CalculateCharacterFreq.setJarByClass(CharacterFrequency.class);
+    	CalculateCharacterFreq.setJobName("CharacterFrequency");
+    	CalculateCharacterFreq.setNumReduceTasks(3);
+    	CalculateCharacterFreq.setMapperClass(FrequencyMapper.class);
+    	CalculateCharacterFreq.setReducerClass(FrequencyReducer.class);
+    	CalculateCharacterFreq.setPartitionerClass(LanguagePartitioner.class);
+    	CalculateCharacterFreq.setMapOutputKeyClass(Text.class);
+    	CalculateCharacterFreq.setMapOutputValueClass(FloatWritable.class);
 
-    	FileInputFormat.addInputPath(CalculateSum, new Path("output/"));
-    	FileOutputFormat.setOutputPath(CalculateSum, new Path("/user/root/output/secondMap/"));
+    	CalculateCharacterFreq.setOutputKeyClass(Text.class);
+    	CalculateCharacterFreq.setOutputValueClass(FloatWritable.class);
 
-        CalculateSum.waitForCompletion(true);
+    	FileInputFormat.addInputPath(CalculateCharacterFreq, new Path(args[1]));
+    	FileOutputFormat.setOutputPath(CalculateCharacterFreq, new Path(args[1]+"/characterfrequency/"));
+
+    	CalculateCharacterFreq.waitForCompletion(true);
     }
-    
-    public static class LanguagePartitioner extends Partitioner<Text, FloatWritable> 
-    {
-       @Override
-       public int getPartition(Text key, FloatWritable values, int numPartitions)
-       {
-     	  String k = key.toString().toLowerCase();
-     	  
-     	  if (k.contains("eng")) {
-     		  return 0;
-     	  } else if (k.contains("fr")) {
-     		  return 1;
-     	  } else if (k.contains("nl")) {
-     		  return 2;
-     	  } else {
-     		  return 0;
-     	  }
-       }
-    }
-    
 }
